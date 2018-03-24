@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExpectedObjects;
-using LinqTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LinqTests
@@ -122,7 +121,7 @@ namespace LinqTests
         public void Take2()
         {
             var employees = RepositoryFactory.GetEmployees();
-            var actual = WithoutLinq.JasonTake(employees,2);
+            var actual = WithoutLinq.JasonTake(employees, 2);
 
             var expected = new List<Employee>()
             {
@@ -137,7 +136,7 @@ namespace LinqTests
         public void Skip6()
         {
             var employees = RepositoryFactory.GetEmployees();
-            var actual = WithoutLinq.JasonSkip(employees,6);
+            var actual = WithoutLinq.JasonSkip(employees, 6);
 
             var expected = new List<Employee>()
             {
@@ -174,6 +173,24 @@ namespace LinqTests
             {
                 new Employee{Name="Kevin", Role=RoleType.Manager, MonthSalary=380, Age=55, WorkingYear=2.6} ,
                 new Employee{Name="Bas", Role=RoleType.Engineer, MonthSalary=280, Age=36, WorkingYear=2.6}
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void SkipWhile()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = WithoutLinq.SkipWhile(employees, 3, employee => employee.MonthSalary < 150);
+
+            var expected = new List<Employee>()
+            {
+                new Employee{Name="Kevin", Role=RoleType.Manager, MonthSalary=380, Age=55, WorkingYear=2.6} ,
+                new Employee{Name="Bas", Role=RoleType.Engineer, MonthSalary=280, Age=36, WorkingYear=2.6} ,
+                new Employee{Name="Mary", Role=RoleType.OP, MonthSalary=180, Age=26, WorkingYear=2.6} ,
+                new Employee{Name="Frank", Role=RoleType.Engineer, MonthSalary=120, Age=16, WorkingYear=2.6} ,
+                new Employee{Name="Joey", Role=RoleType.Engineer, MonthSalary=250, Age=40, WorkingYear=2.6},
             };
 
             expected.ToExpectedObject().ShouldEqual(actual.ToList());
@@ -239,7 +256,6 @@ namespace LinqTests
 
                 index++;
             }
-            
         }
 
         public static IEnumerable<T> JasonSkip<T>(IEnumerable<T> items, int count)
@@ -252,10 +268,9 @@ namespace LinqTests
                 {
                     yield return enumerator.Current;
                 }
-                
+
                 index++;
             }
-
         }
 
         public static IEnumerable<int> JasonGroupBy<T>(IEnumerable<T> items, int pageSize, Func<T, int> property)
@@ -264,7 +279,7 @@ namespace LinqTests
             while (rowIndex < items.Count())
             {
                 yield return items.Skip(rowIndex).Take(pageSize).Sum(property);
-                rowIndex+=pageSize;
+                rowIndex += pageSize;
             }
         }
 
@@ -281,6 +296,23 @@ namespace LinqTests
                     {
                         yield break;
                     }
+                }
+            }
+        }
+
+        public static IEnumerable<T> SkipWhile<T>(IEnumerable<T> items, int count, Func<T, bool> predicate)
+        {
+            var item = items.GetEnumerator();
+            var index = 0;
+            while (item.MoveNext())
+            {
+                if (predicate(item.Current) && index < count)
+                {
+                    index++;
+                }
+                else
+                {
+                    yield return item.Current;
                 }
             }
         }
