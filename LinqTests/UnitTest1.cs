@@ -110,8 +110,27 @@ namespace LinqTests
                 "Engineer:Frank",
             };
 
-            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+            foreach (var title in actual)
+            {
+                Console.Write(title);
+            }
 
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void Take2()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = WithoutLinq.JasonTake(employees,2);
+
+            var expected = new List<Employee>()
+            {
+                new Employee{Name="Joe", Role=RoleType.Engineer, MonthSalary=100, Age=44, WorkingYear=2.6 } ,
+                new Employee{Name="Tom", Role=RoleType.Engineer, MonthSalary=140, Age=33, WorkingYear=2.6} ,
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
         }
     }
 
@@ -155,6 +174,25 @@ namespace LinqTests
             {
                 yield return item.Length;
             }
+        }
+
+        internal static IEnumerable<T> JasonTake<T>(IEnumerable<T> items, int count)
+        {
+            var enumerator = items.GetEnumerator();
+            var index = 0;
+            while (enumerator.MoveNext())
+            {
+                if (index < count)
+                {
+                    yield return enumerator.Current;
+                }
+                else
+                {
+                    yield break;
+                }
+                index++;
+            }
+            
         }
     }
 
