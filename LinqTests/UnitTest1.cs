@@ -30,7 +30,7 @@ namespace LinqTests
         public void find_products_that_price_between_200_and_500_2()
         {
             var products = RepositoryFactory.GetProducts();
-            var actual = WithoutLinq.FindProductByPrice(products, 200, 500);
+            var actual = products.Where(x => x.Price < 500 && x.Price > 200);
 
             var expected = new List<Product>()
             {
@@ -39,7 +39,7 @@ namespace LinqTests
                 new Product{Id=4, Cost=41, Price=410, Supplier="Odd-e" },
             };
             
-            expected.ToExpectedObject().ShouldEqual(actual.Where(x=>x.Price < 500 && x.Price >200).ToList());
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
         }
     }
 }
