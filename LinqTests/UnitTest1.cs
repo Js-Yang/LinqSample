@@ -132,6 +132,52 @@ namespace LinqTests
 
             expected.ToExpectedObject().ShouldEqual(actual.ToList());
         }
+
+        [TestMethod]
+        public void Skip6()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = WithoutLinq.JasonSkip(employees,6);
+
+            var expected = new List<Employee>()
+            {
+                new Employee{Name="Frank", Role=RoleType.Engineer, MonthSalary=120, Age=16, WorkingYear=2.6} ,
+                new Employee{Name="Joey", Role=RoleType.Engineer, MonthSalary=250, Age=40, WorkingYear=2.6},
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void Group()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = WithoutLinq.JasonGroupBy(employees, 3, employee => employee.MonthSalary);
+
+            var expected = new List<int>()
+            {
+                620,
+                540,
+                370
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void TakeWhile()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = WithoutLinq.TakeWhile(employees, 2, employee => employee.MonthSalary > 150);
+
+            var expected = new List<Employee>()
+            {
+                new Employee{Name="Kevin", Role=RoleType.Manager, MonthSalary=380, Age=55, WorkingYear=2.6} ,
+                new Employee{Name="Bas", Role=RoleType.Engineer, MonthSalary=280, Age=36, WorkingYear=2.6}
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
     }
 
     internal static class WithoutLinq
@@ -190,9 +236,53 @@ namespace LinqTests
                 {
                     yield break;
                 }
+
                 index++;
             }
             
+        }
+
+        public static IEnumerable<T> JasonSkip<T>(IEnumerable<T> items, int count)
+        {
+            var enumerator = items.GetEnumerator();
+            var index = 0;
+            while (enumerator.MoveNext())
+            {
+                if (index >= count)
+                {
+                    yield return enumerator.Current;
+                }
+                
+                index++;
+            }
+
+        }
+
+        public static IEnumerable<int> JasonGroupBy<T>(IEnumerable<T> items, int pageSize, Func<T, int> property)
+        {
+            var rowIndex = 0;
+            while (rowIndex < items.Count())
+            {
+                yield return items.Skip(rowIndex).Take(pageSize).Sum(property);
+                rowIndex+=pageSize;
+            }
+        }
+
+        public static IEnumerable<T> TakeWhile<T>(IEnumerable<T> items, int count, Func<T, bool> predicate)
+        {
+            var ItemIndex = 0;
+            foreach (var item in items)
+            {
+                if (predicate(item))
+                {
+                    ItemIndex++;
+                    yield return item;
+                    if (ItemIndex >= count)
+                    {
+                        yield break;
+                    }
+                }
+            }
         }
     }
 
