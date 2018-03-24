@@ -65,8 +65,8 @@ namespace LinqTests
         [TestMethod]
         public void Select_URL_Should_return_All_Https()
         {
-            var products = RepositoryFactory.GetUrls();
-            var actual = WithoutLinq.Select(products);
+            var urls = RepositoryFactory.GetUrls();
+            var actual = urls.JasonSelect(x => x.Replace("http:","https:")); ;
 
             var expected = new List<string>()
             {
@@ -82,8 +82,8 @@ namespace LinqTests
         [TestMethod]
         public void ReturnUrlLengh()
         {
-            var products = RepositoryFactory.GetUrls();
-            var actual = WithoutLinq.GetUrlLength(products);
+            var urls = RepositoryFactory.GetUrls();
+            var actual = urls.JasonSelect(x=>x.Length);
 
             var expected = new List<int>()
             {
@@ -160,6 +160,14 @@ internal static class YourOwnLinq
                 yield return item;
             }
             index++;
+        }
+    }
+
+    public static IEnumerable<TResult> JasonSelect<TSource,TResult>(this IEnumerable<TSource> items, Func<TSource, TResult> selector)
+    {
+        foreach (var item in items)
+        {
+            yield return selector(item);
         }
     }
 }
