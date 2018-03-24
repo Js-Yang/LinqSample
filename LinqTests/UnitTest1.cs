@@ -14,7 +14,44 @@ namespace LinqTests
         public void find_products_that_price_between_200_and_500_cost_higher_then30()
         {
             var products = RepositoryFactory.GetProducts();
-            var actual = products.FindProducts(product => product.Price > 200 && product.Price < 500 && product.Cost > 30);
+            var actual = products.JasonWhere((product, index) => product.Price > 200 && product.Price < 500 && product.Cost > 30 && index % 3 == 0);
+
+            var expected = new List<Product>()
+            {
+                new Product{Id=4, Cost=41, Price=410, Supplier="Odd-e" },
+            };
+
+            foreach (var product in actual)
+            {
+                Console.WriteLine(((Product)product).Price);
+            }
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void find_Employee_that_age_greater_then_30()
+        {
+            var employees = RepositoryFactory.GetEmployees();
+            var actual = employees.JasonWhere(employee => employee.Age > 30);
+
+            var expected = new List<Employee>()
+            {
+                new Employee{Name="Joe", Role=RoleType.Engineer, MonthSalary=100, Age=44, WorkingYear=2.6 } ,
+                new Employee{Name="Tom", Role=RoleType.Engineer, MonthSalary=140, Age=33, WorkingYear=2.6} ,
+                new Employee{Name="Kevin", Role=RoleType.Manager, MonthSalary=380, Age=55, WorkingYear=2.6} ,
+                new Employee{Name="Bas", Role=RoleType.Engineer, MonthSalary=280, Age=36, WorkingYear=2.6} ,
+                new Employee{Name="Joey", Role=RoleType.Engineer, MonthSalary=250, Age=40, WorkingYear=2.6}
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void find_products_that_price_between_200_and_500_2()
+        {
+            var products = RepositoryFactory.GetProducts();
+            var actual = products.JasonWhere(x => x.Price < 500 && x.Price > 200 && x.Cost > 30);
 
             var expected = new List<Product>()
             {
@@ -26,15 +63,31 @@ namespace LinqTests
         }
 
         [TestMethod]
-        public void find_products_that_price_between_200_and_500_2()
+        public void Select_URL_Should_return_All_Https()
         {
-            var products = RepositoryFactory.GetProducts();
-            var actual = products.Where(x => x.Price < 500 && x.Price > 200 && x.Cost > 30);
+            var products = RepositoryFactory.GetUrls();
+            var actual = WithoutLinq.Select(products);
 
-            var expected = new List<Product>()
+            var expected = new List<string>()
             {
-                new Product{Id=3, Cost=31, Price=310, Supplier="Odd-e" },
-                new Product{Id=4, Cost=41, Price=410, Supplier="Odd-e" },
+                "https://tw.yahoo.com",
+                "https://facebook.com",
+                "https://twitter.com",
+                "https://github.com",
+            };
+
+            expected.ToExpectedObject().ShouldEqual(actual.ToList());
+        }
+
+        [TestMethod]
+        public void ReturnUrlLengh()
+        {
+            var products = RepositoryFactory.GetUrls();
+            var actual = WithoutLinq.GetUrlLength(products);
+
+            var expected = new List<int>()
+            {
+                19,20,19,17
             };
 
             expected.ToExpectedObject().ShouldEqual(actual.ToList());
@@ -44,18 +97,69 @@ namespace LinqTests
 
 internal static class WithoutLinq
 {
-    public static IEnumerable<Product> FindProducts(this IEnumerable<Product> products, Func<Product, bool> predicate)
+    public static IEnumerable<T> Find<T>(this IEnumerable<T> items, Func<T, bool> predicate)
     {
-        foreach (var product in products)
+        foreach (var item in items)
         {
-            if (predicate(product))
+            if (predicate(item))
             {
-                yield return product;
+                yield return item;
             }
+        }
+    }
+
+    public static IEnumerable<T> FindProducts<T>(this IEnumerable<T> items, Func<T, int, bool> predicate)
+    {
+        int index = 0;
+        foreach (var item in items)
+        {
+            if (predicate(item, index))
+            {
+                yield return item;
+            }
+            index++;
+        }
+    }
+    internal static IEnumerable<string> Select(IEnumerable<string> items)
+    {
+        foreach (var item in items)
+        {
+            yield return item.Replace("http:", "https:");
+        }
+    }
+
+    public static IEnumerable<int> GetUrlLength(IEnumerable<string> items)
+    {
+        foreach (var item in items)
+        {
+            yield return item.Length;
         }
     }
 }
 
-internal class YourOwnLinq
+internal static class YourOwnLinq
 {
+    public static IEnumerable<TItem> JasonWhere<TItem>(this IEnumerable<TItem> items, Func<TItem, bool> predicate)
+    {
+        foreach (var item in items)
+        {
+            if (predicate(item))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    public static IEnumerable<TItem> JasonWhere<TItem>(this IEnumerable<TItem> items, Func<TItem, int, bool> predicate)
+    {
+        int index = 0;
+        foreach (var item in items)
+        {
+            if (predicate(item, index))
+            {
+                yield return item;
+            }
+            index++;
+        }
+    }
 }
